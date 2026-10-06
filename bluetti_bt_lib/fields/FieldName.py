@@ -107,6 +107,7 @@ class FieldName(Enum):
     ENERGY_GRID_CHARGE_TOTAL = "energy_grid_charge_total"
     ENERGY_PV_TOTAL = "energy_pv_total"
     CTRL_GRID_CHARGE = "ctrl_grid_charge"
+    MAX_GRID_CHARGE_CURRENT = "max_grid_charge_current"
     CTRL_TIME_CONTROL = "ctrl_time_control"
     TIME_SLOT_1 = "time_slot_1"
     TIME_SLOT_2 = "time_slot_2"

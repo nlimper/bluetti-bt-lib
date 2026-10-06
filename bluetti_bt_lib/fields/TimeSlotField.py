@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, List
 
 from ..enums import TimeSlotMode
 from . import DeviceField, FieldName
@@ -39,3 +40,32 @@ class TimeSlotField(DeviceField):
 
     def in_range(self, value: TimeSlot | None) -> bool:
         return value is not None
+
+    def is_writeable(self):
+        return True
+
+    def allowed_write_type(self, value: Any) -> bool:
+        if not isinstance(value, TimeSlot) or not isinstance(value.mode, TimeSlotMode):
+            return False
+        start, end = _minutes(value.start), _minutes(value.end)
+        if start is None or end is None:
+            return False
+        # An unused slot may hold any times; an active one must run forward
+        return value.mode == TimeSlotMode.OFF or start < end
+
+    def encode(self, value: TimeSlot) -> List[int]:
+        """Register values for a slot: mode, start hh|mm, end hh|mm."""
+        sh, sm = (int(x) for x in value.start.split(":"))
+        eh, em = (int(x) for x in value.end.split(":"))
+        return [value.mode.value, (sh << 8) | sm, (eh << 8) | em]
+
+
+def _minutes(hhmm: str) -> int | None:
+    """Minutes since midnight for "HH:MM" (00:00-23:59), None when invalid."""
+    try:
+        h, m = (int(x) for x in hhmm.split(":"))
+    except (AttributeError, ValueError):
+        return None
+    if not (0 <= h <= 23 and 0 <= m <= 59):
+        return None
+    return h * 60 + m

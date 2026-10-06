@@ -83,6 +83,8 @@ class EL200V2(BaseDeviceV2):
                     must_be_above=FieldName.BATTERY_SOC_RANGE_START,
                 ),
                 SwitchField(FieldName.CTRL_TIME_CONTROL, 2029),
+                # 1-10 A on 230 V units (the app allows 1-12 A on 120 V units)
+                NumberField(FieldName.MAX_GRID_CHARGE_CURRENT, 2214, min=1, max=10),
                 SelectField(FieldName.CTRL_DISPLAY_TIMEOUT, 2067, DisplayMode),
                 # Customized UPS time slots (6 on this model, 3 registers each)
                 TimeSlotField(FieldName.TIME_SLOT_1, 2030),

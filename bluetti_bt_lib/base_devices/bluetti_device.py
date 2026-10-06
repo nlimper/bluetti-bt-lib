@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from ..registers import ReadableRegisters, WriteableRegister
+from ..registers import ReadableRegisters, WriteableRegister, WriteableRegisters
 from ..fields import (
     DeviceField,
     BoolField,
@@ -8,6 +8,7 @@ from ..fields import (
     NumberField,
     SwitchField,
     SelectField,
+    TimeSlotField,
 )
 
 
@@ -105,7 +106,9 @@ class BluettiDevice:
 
         return parsed
 
-    def build_write_command(self, name: str, value: Any) -> WriteableRegister | None:
+    def build_write_command(
+        self, name: str, value: Any
+    ) -> WriteableRegister | WriteableRegisters | None:
         """Build a command to write values to the device"""
 
         matches = [f for f in self.fields if f.name == name]
@@ -118,6 +121,11 @@ class BluettiDevice:
 
         if field.address in self.write_protected_addresses:
             return None
+
+        if isinstance(field, TimeSlotField):
+            if not field.allowed_write_type(value):
+                return None
+            return WriteableRegisters(field.address, field.encode(value))
 
         # Convert value to an integer if its not already
         if isinstance(field, SelectField):
@@ -150,6 +158,10 @@ class BluettiDevice:
         """Returns all select fields for this device"""
         return [f for f in self.fields if isinstance(f, SelectField)]
 
+    def get_time_slot_fields(self):
+        """Returns all time slot fields for this device"""
+        return [f for f in self.fields if isinstance(f, TimeSlotField)]
+
     def get_number_fields(self):
         """Returns all number fields for this device"""
         return [f for f in self.fields if isinstance(f, NumberField)]
@@ -164,4 +176,5 @@ class BluettiDevice:
             and not isinstance(f, SwitchField)
             and not isinstance(f, SelectField)
             and not isinstance(f, NumberField)
+            and not isinstance(f, TimeSlotField)
         ]
