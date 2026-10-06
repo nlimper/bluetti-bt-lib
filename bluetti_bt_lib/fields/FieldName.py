@@ -106,6 +106,12 @@ class FieldName(Enum):
     ENERGY_DC_OUTPUT_TOTAL = "energy_dc_output_total"
     ENERGY_GRID_CHARGE_TOTAL = "energy_grid_charge_total"
     ENERGY_PV_TOTAL = "energy_pv_total"
+    TIME_SLOT_1 = "time_slot_1"
+    TIME_SLOT_2 = "time_slot_2"
+    TIME_SLOT_3 = "time_slot_3"
+    TIME_SLOT_4 = "time_slot_4"
+    TIME_SLOT_5 = "time_slot_5"
+    TIME_SLOT_6 = "time_slot_6"
 
     # Battery pack fields will get a prefix from the reader
     PACK_BATTERY_SOC = "battery_soc"

@@ -4,6 +4,7 @@ from ..fields import (
     DecimalField,
     FieldName,
     TemperatureField,
+    TimeSlotField,
     UInt32Field,
     UIntField,
 )
@@ -57,6 +58,13 @@ class EL200V2(BaseDeviceV2):
                 BoolField(FieldName.AC_OUTPUT_ON, 2011),
                 BoolField(FieldName.DC_OUTPUT_ON, 2012),
                 BoolField(FieldName.ECO_AC_ON, 2017),
+                # Customized UPS time slots (6 on this model, 3 registers each)
+                TimeSlotField(FieldName.TIME_SLOT_1, 2030),
+                TimeSlotField(FieldName.TIME_SLOT_2, 2033),
+                TimeSlotField(FieldName.TIME_SLOT_3, 2036),
+                TimeSlotField(FieldName.TIME_SLOT_4, 2039),
+                TimeSlotField(FieldName.TIME_SLOT_5, 2042),
+                TimeSlotField(FieldName.TIME_SLOT_6, 2045),
                 # Battery
                 DecimalField(FieldName.BATTERY_VOLTAGE, 6003, 2),
                 UIntField(FieldName.BATTERY_SOH, 6006, max=100),
