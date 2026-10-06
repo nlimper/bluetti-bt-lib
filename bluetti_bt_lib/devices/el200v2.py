@@ -1,8 +1,12 @@
 from ..base_devices import BaseDeviceV2
+from ..enums import ChargingMode, DisplayMode, EcoMode, WorkingModeV2
 from ..fields import (
     BoolField,
     DecimalField,
     FieldName,
+    NumberField,
+    SelectField,
+    SwitchField,
     TemperatureField,
     TimeSlotField,
     UInt32Field,
@@ -13,9 +17,8 @@ from ..fields import (
 class EL200V2(BaseDeviceV2):
     """BLUETTI Elite 200 V2.
 
-    Read-only for now. Registers checked against a live unit; see
-    docs in hassio-bluetti-bt. AC/DC output and AC ECO are reported but
-    never written.
+    Registers checked against a live unit; see the docs in hassio-bluetti-bt.
+    AC/DC output and AC ECO are reported but never written.
     """
 
     write_protected_addresses = frozenset(
@@ -58,6 +61,29 @@ class EL200V2(BaseDeviceV2):
                 BoolField(FieldName.AC_OUTPUT_ON, 2011),
                 BoolField(FieldName.DC_OUTPUT_ON, 2012),
                 BoolField(FieldName.ECO_AC_ON, 2017),
+                # Settings
+                SelectField(FieldName.CTRL_UPS_MODE, 2005, WorkingModeV2),
+                SwitchField(FieldName.CTRL_GRID_CHARGE, 2008),
+                SwitchField(FieldName.CTRL_ECO_DC, 2014),
+                SelectField(FieldName.CTRL_ECO_TIME_MODE_DC, 2015, EcoMode),
+                SelectField(FieldName.CTRL_CHARGING_MODE, 2020, ChargingMode),
+                SwitchField(FieldName.CTRL_POWER_LIFTING, 2021),
+                NumberField(
+                    FieldName.BATTERY_SOC_RANGE_START,
+                    2022,
+                    min=5,
+                    max=100,
+                    must_be_below=FieldName.BATTERY_SOC_RANGE_END,
+                ),
+                NumberField(
+                    FieldName.BATTERY_SOC_RANGE_END,
+                    2023,
+                    min=5,
+                    max=100,
+                    must_be_above=FieldName.BATTERY_SOC_RANGE_START,
+                ),
+                SwitchField(FieldName.CTRL_TIME_CONTROL, 2029),
+                SelectField(FieldName.CTRL_DISPLAY_TIMEOUT, 2067, DisplayMode),
                 # Customized UPS time slots (6 on this model, 3 registers each)
                 TimeSlotField(FieldName.TIME_SLOT_1, 2030),
                 TimeSlotField(FieldName.TIME_SLOT_2, 2033),

@@ -1,7 +1,14 @@
 from typing import Any, List
 
 from ..registers import ReadableRegisters, WriteableRegister
-from ..fields import DeviceField, BoolField, BoolFieldNonZero, SwitchField, SelectField
+from ..fields import (
+    DeviceField,
+    BoolField,
+    BoolFieldNonZero,
+    NumberField,
+    SwitchField,
+    SelectField,
+)
 
 
 class BluettiDevice:
@@ -116,8 +123,13 @@ class BluettiDevice:
         if isinstance(field, SelectField):
             if not isinstance(value, int):
                 value = field.e[value].value
+            if value not in [e.value for e in field.e]:
+                return None
         elif isinstance(field, SwitchField):
             value = 1 if value else 0
+        elif isinstance(field, NumberField):
+            if not field.allowed_write_type(value) or not field.in_range(value):
+                return None
 
         return WriteableRegister(field.address, value)
 
@@ -138,6 +150,10 @@ class BluettiDevice:
         """Returns all select fields for this device"""
         return [f for f in self.fields if isinstance(f, SelectField)]
 
+    def get_number_fields(self):
+        """Returns all number fields for this device"""
+        return [f for f in self.fields if isinstance(f, NumberField)]
+
     def get_sensor_fields(self):
         """Returns all sensor fields for this device"""
         return [
@@ -147,4 +163,5 @@ class BluettiDevice:
             and not isinstance(f, BoolFieldNonZero)
             and not isinstance(f, SwitchField)
             and not isinstance(f, SelectField)
+            and not isinstance(f, NumberField)
         ]
