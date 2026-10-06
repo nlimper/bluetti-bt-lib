@@ -42,11 +42,12 @@ class EL200V2(BaseDeviceV2):
                 UInt32Field(FieldName.AC_OUTPUT_APPARENT_POWER, 142),
                 UInt32Field(FieldName.DC_INPUT_POWER, 144),
                 UInt32Field(FieldName.AC_INPUT_APPARENT_POWER, 146),
-                # Lifetime counters, 0.1 kWh
+                # Lifetime counters, 0.1 kWh. 156 counts all AC input,
+                # pass-through included (it rises with the AC output counter).
                 UInt32Field(FieldName.ENERGY_DC_OUTPUT_TOTAL, 150, 0.1),
                 UInt32Field(FieldName.ENERGY_AC_OUTPUT_TOTAL, 152, 0.1),
                 UInt32Field(FieldName.ENERGY_PV_TOTAL, 154, 0.1),
-                UInt32Field(FieldName.ENERGY_GRID_CHARGE_TOTAL, 156, 0.1),
+                UInt32Field(FieldName.ENERGY_AC_INPUT_TOTAL, 156, 0.1),
                 UInt32Field(FieldName.ENERGY_BATTERY_DISCHARGE_TOTAL, 167, 0.1),
                 # Grid (AC input), phase 1
                 DecimalField(FieldName.AC_INPUT_VOLTAGE, 1314, 1),
@@ -95,6 +96,7 @@ class EL200V2(BaseDeviceV2):
                 TimeSlotField(FieldName.TIME_SLOT_6, 2045),
                 # Battery
                 DecimalField(FieldName.BATTERY_VOLTAGE, 6003, 2),
+                DecimalField(FieldName.BATTERY_CURRENT, 6004, 1, signed=True),
                 UIntField(FieldName.BATTERY_SOH, 6006, max=100),
                 TemperatureField(FieldName.BATTERY_TEMPERATURE, 6007),
             ],

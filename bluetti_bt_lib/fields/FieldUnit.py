@@ -62,6 +62,7 @@ FIELD_UNIT: Dict[FieldName, str] = {
     FieldName.TIME_REMAINING: "h",
     FieldName.AC_INPUT_APPARENT_POWER: "VA",
     FieldName.AC_OUTPUT_APPARENT_POWER: "VA",
+    FieldName.BATTERY_CURRENT: "A",
     FieldName.BATTERY_SOH: "%",
     FieldName.BATTERY_TEMPERATURE: "°C",
     FieldName.BATTERY_VOLTAGE: "V",
@@ -70,7 +71,7 @@ FIELD_UNIT: Dict[FieldName, str] = {
     FieldName.ENERGY_AC_OUTPUT_TOTAL: "kWh",
     FieldName.ENERGY_BATTERY_DISCHARGE_TOTAL: "kWh",
     FieldName.ENERGY_DC_OUTPUT_TOTAL: "kWh",
-    FieldName.ENERGY_GRID_CHARGE_TOTAL: "kWh",
+    FieldName.ENERGY_AC_INPUT_TOTAL: "kWh",
     FieldName.ENERGY_PV_TOTAL: "kWh",
     FieldName.MAX_GRID_CHARGE_CURRENT: "A",
     # Battery pack fields

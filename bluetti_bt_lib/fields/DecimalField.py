@@ -13,15 +13,17 @@ class DecimalField(DeviceField):
         multiplier: float = 1,
         min: Decimal | None = None,
         max: Decimal | None = None,
+        signed: bool = False,
     ):
         super().__init__(name, address, 1)
         self.scale = scale
         self.multiplier = multiplier
         self.min = min
         self.max = max
+        self.signed = signed
 
     def parse(self, data: bytes) -> Decimal:
-        val = Decimal(struct.unpack("!H", data)[0])
+        val = Decimal(struct.unpack("!h" if self.signed else "!H", data)[0])
         return (val / 10**self.scale) * Decimal(self.multiplier)
 
     def in_range(self, value: Decimal) -> bool:
