@@ -5,6 +5,10 @@ from ..fields import DeviceField, BoolField, BoolFieldNonZero, SwitchField, Sele
 
 
 class BluettiDevice:
+    # Registers that must never be written on this model, whatever field
+    # definition points at them. Checked before any write command is built.
+    write_protected_addresses: frozenset[int] = frozenset()
+
     def __init__(
         self,
         fields: List[DeviceField],
@@ -104,6 +108,9 @@ class BluettiDevice:
             return None
 
         field = next(iter(fields))
+
+        if field.address in self.write_protected_addresses:
+            return None
 
         # Convert value to an integer if its not already
         if isinstance(field, SelectField):

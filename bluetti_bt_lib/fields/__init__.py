@@ -10,6 +10,8 @@ from .EnumField import *
 from .SelectField import *
 from .SerialNumberField import *
 from .StringField import *
+from .TemperatureField import *
+from .UInt32Field import *
 from .SwapStringField import *
 from .SwitchField import *
 from .UIntField import *
