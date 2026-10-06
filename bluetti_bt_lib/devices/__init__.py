@@ -54,7 +54,6 @@ DEVICES = {
     "EL10": EL10,
     "EL100V2": EL100V2,
     "Elite 200 V2": EL200V2,
-    "E200V2": EL200V2,  # name as stored by the HA config flow
     "EL30V2": EL30V2,
     "EP500": EP500,
     "EP500P": EP500P,
@@ -66,6 +65,12 @@ DEVICES = {
     "Handsfree 2": Handsfree2,
     "PR30V2": PR30V2,
     "PR100V2": PR100V2,
+}
+
+# Names that are not advertised over BLE but end up stored, e.g. by the HA
+# config flow, which keeps only capitals and digits of the device name
+DEVICE_ALIASES = {
+    "E200V2": "Elite 200 V2",
 }
 
 # Prefixes of all currently supported devices
