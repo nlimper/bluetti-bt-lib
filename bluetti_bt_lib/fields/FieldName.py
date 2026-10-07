@@ -95,6 +95,7 @@ class FieldName(Enum):
     WIFI_NAME = "wifi_name"
     AC_INPUT_APPARENT_POWER = "ac_input_apparent_power"
     AC_OUTPUT_APPARENT_POWER = "ac_output_apparent_power"
+    BATTERY_CHARGING_STATUS = "battery_charging_status"
     BATTERY_CURRENT = "battery_current"
     BATTERY_SOH = "battery_soh"
     BATTERY_TEMPERATURE = "battery_temperature"

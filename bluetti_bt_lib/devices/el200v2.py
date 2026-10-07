@@ -1,8 +1,9 @@
 from ..base_devices import BaseDeviceV2
-from ..enums import ChargingMode, DisplayMode, EcoMode, WorkingModeV2
+from ..enums import BatteryChargingStatus, ChargingMode, DisplayMode, EcoMode, WorkingModeV2
 from ..fields import (
     BoolField,
     DecimalField,
+    EnumField,
     FieldName,
     NumberField,
     SelectField,
@@ -35,6 +36,7 @@ class EL200V2(BaseDeviceV2):
     def __init__(self):
         super().__init__(
             [
+                EnumField(FieldName.BATTERY_CHARGING_STATUS, 103, BatteryChargingStatus),
                 UIntField(FieldName.CHARGE_TIME_REMAINING, 104, max=5993),
                 UIntField(FieldName.DISCHARGE_TIME_REMAINING, 105, max=5993),
                 # Live power, 32-bit low word first. 142/146 are apparent power.
@@ -96,7 +98,9 @@ class EL200V2(BaseDeviceV2):
                 TimeSlotField(FieldName.TIME_SLOT_6, 2045),
                 # Battery
                 DecimalField(FieldName.BATTERY_VOLTAGE, 6003, 2),
-                DecimalField(FieldName.BATTERY_CURRENT, 6004, 1, signed=True),
+                # Magnitude only (positive while charging and discharging); the
+                # direction is in BATTERY_CHARGING_STATUS (103).
+                DecimalField(FieldName.BATTERY_CURRENT, 6004, 1),
                 UIntField(FieldName.BATTERY_SOH, 6006, max=100),
                 TemperatureField(FieldName.BATTERY_TEMPERATURE, 6007),
             ],

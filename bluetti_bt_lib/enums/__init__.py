@@ -1,3 +1,4 @@
+from .battery_charging_status import *
 from .charging_mode import *
 from .display_mode import *
 from .eco_mode import *
