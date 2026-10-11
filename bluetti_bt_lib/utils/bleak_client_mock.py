@@ -95,16 +95,24 @@ class BleakClientMock:
         data: Buffer,
         response: bool = None,
     ) -> None:
-        cmd = struct.unpack_from("!HHHH", data)
-        content = await self._get_register(cmd[1], cmd[2])
+        data = bytes(data)
+        if data[1] != 3:
+            # write (06 / 16): a MODBUS slave answers with the first 6 bytes of the request
+            response = bytearray(data[:6]) + bytearray(2)
+            struct.pack_into("<H", response, -2, modbus_crc(response[:-2]))
+            await self._callback(char_specifier, response)
+            return
+        _, _, addr, size = struct.unpack_from("!BBHH", data)
+        content = await self._get_register(addr, size)
         await self._callback(char_specifier, content)
 
     async def _get_register(self, addr: int, size: int):
+        """A MODBUS function 03 answer: slave 1, function 3, byte count, data, CRC"""
         data = self._bytemap[(addr * 2) : (addr * 2 + size * 2)]
-        response = bytearray(len(data) + 4)
-        response[0] = 0
-        response[1] = 0
-        response[2] = 0
+        response = bytearray(len(data) + 5)
+        response[0] = 1
+        response[1] = 3
+        response[2] = len(data)
         response[3:-2] = data
         struct.pack_into("<H", response, -2, modbus_crc(response[:-2]))
         return response

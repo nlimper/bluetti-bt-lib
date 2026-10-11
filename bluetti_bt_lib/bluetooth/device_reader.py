@@ -13,6 +13,16 @@ from ..registers import ReadableRegisters, DeviceRegister
 from ..utils.privacy import mac_loggable
 
 
+class ResponseTimeout(Exception):
+    """No valid answer to a request in time.
+
+    The read is aborted and the connection closed: an answer that arrives late could otherwise
+    be taken for the answer to the next request (a function 03 answer does not say which
+    registers it holds), which shifted values into other fields (seen in Home Assistant:
+    SOC high showing the value of SOC low, time slots showing the neighbouring slot).
+    """
+
+
 class DeviceReaderConfig:
     def __init__(
         self,
@@ -205,13 +215,18 @@ class DeviceReader:
 
                     self._read_ok = bool(parsed_data)
 
+            except ResponseTimeout as err:
+                self.logger.warning("No valid response to %s, read aborted", err)
+                return None
             except TimeoutError:
                 self.logger.warning("Timeout")
                 return None
             except BleakError as err:
                 self.logger.warning("Bleak error: %s", err)
                 return None
-            except BaseException as err:
+            except Exception as err:
+                # Not BaseException: cancelling (Home Assistant stopping) must stop the read,
+                # not let it continue with answers that may belong to other requests.
                 self.logger.warning("Unknown error %s", err)
                 return None
             finally:
@@ -286,7 +301,12 @@ class DeviceReader:
         return self.session.is_ready or not self.config.use_encryption
 
     async def _async_send_command(self, registers: DeviceRegister) -> bytes:
-        """Send command and return response"""
+        """Send a command and return the validated response.
+
+        Raises ResponseTimeout when no valid answer arrives in time; the caller must then stop
+        using this connection. A MODBUS exception answer (e.g. a register range the device does
+        not support) returns an empty response.
+        """
         self.current_registers = registers
         self.notify_response = bytearray()
         self.notify_future = self.create_future()
@@ -312,12 +332,14 @@ class DeviceReader:
             self.logger.debug("Got response")
 
             return cast(bytes, res)
-        except:
-            self.logger.warning("Error while reading data")
+        except asyncio.TimeoutError as err:
+            raise ResponseTimeout(registers) from err
+        finally:
+            # Answers that arrive from now on are not for a pending request: drop them
+            self.notify_future = None
 
-        return bytes()
     async def _notification_handler(self, _: int, data: bytearray):
-        """Handle bt data."""
+        """Handle bt data: collect the answer to the current request and check it."""
         self.logger.debug("Got new data (%d bytes)", len(data))
 
         if self.config.use_encryption is True:
@@ -327,6 +349,7 @@ class DeviceReader:
             data = payload
 
         if self.notify_future is None:
+            self.logger.debug("Dropping notification, no request pending")
             return
 
         if self.notify_future.done():
@@ -334,5 +357,23 @@ class DeviceReader:
             return
 
         self.notify_response.extend(data)
+        response = bytes(self.notify_response)
+        registers = self.current_registers
 
-        self.notify_future.set_result(self.notify_response)
+        if registers.is_valid_exception(response):
+            self.logger.debug("Exception response to %s", registers)
+            self.notify_future.set_result(bytes())
+            return
+
+        size = registers.response_size()
+        if len(response) < size:
+            return  # wait for the rest
+
+        if len(response) == size and registers.is_valid_response(response):
+            self.notify_future.set_result(response)
+            return
+
+        # Not the answer to this request (late answer to an earlier one, or corrupted):
+        # discard and keep waiting; if no valid answer follows, the request times out.
+        self.logger.debug("Discarding response that does not match %s: %s", registers, response.hex())
+        self.notify_response = bytearray()

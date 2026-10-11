@@ -18,6 +18,14 @@ class WriteableRegisters(DeviceRegister):
     def response_size(self):
         return 8
 
+    def is_valid_response(self, response: bytes) -> bool:
+        """Function 16 answers with slave, function, start address and quantity"""
+        return (
+            len(response) == 8
+            and response[:6] == bytes(self.cmd[:6])
+            and super().is_valid_response(response)
+        )
+
     def parse_response(self, response: bytes):
         return bytes(response[2:6])
 
