@@ -50,7 +50,9 @@ class EL200V2(BaseDeviceV2):
                 UInt32Field(FieldName.ENERGY_AC_OUTPUT_TOTAL, 152, 0.1),
                 UInt32Field(FieldName.ENERGY_PV_TOTAL, 154, 0.1),
                 UInt32Field(FieldName.ENERGY_AC_INPUT_TOTAL, 156, 0.1),
-                UInt32Field(FieldName.ENERGY_BATTERY_DISCHARGE_TOTAL, 167, 0.1),
+                # 0.01 kWh, not 0.1 as the app's register list says: at 0.1 it
+                # rose 10x the SOC drop and the AC-side energy while discharging.
+                UInt32Field(FieldName.ENERGY_BATTERY_DISCHARGE_TOTAL, 167, 0.01),
                 # Grid (AC input), phase 1
                 DecimalField(FieldName.AC_INPUT_VOLTAGE, 1314, 1),
                 DecimalField(FieldName.AC_INPUT_CURRENT, 1315, 1),
