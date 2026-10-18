@@ -23,6 +23,15 @@ class ResponseTimeout(Exception):
     """
 
 
+# Seconds to wait after an unanswered request before disconnecting, so that a late answer still
+# arrives (and is dropped) instead of the link going down while the unit is sending.
+LATE_ANSWER_GRACE = 3
+
+# Connection attempts per read. Every attempt costs the unit a new key exchange, and a unit that
+# does not answer gets nothing from being asked ten times in a row; the caller retries later.
+CONNECT_ATTEMPTS = 3
+
+
 class DeviceReaderConfig:
     def __init__(
         self,
@@ -134,7 +143,7 @@ class DeviceReader:
                                 BleakClientWithServiceCache,
                                 self.device,
                                 self.device.name or "Unknown Device",
-                                max_attempts=10,
+                                max_attempts=CONNECT_ATTEMPTS,
                             )
 
                         self.logger.debug("Connected to device")
@@ -217,6 +226,7 @@ class DeviceReader:
 
             except ResponseTimeout as err:
                 self.logger.warning("No valid response to %s, read aborted", err)
+                await asyncio.sleep(LATE_ANSWER_GRACE)
                 return None
             except TimeoutError:
                 self.logger.warning("Timeout")

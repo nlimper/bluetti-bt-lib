@@ -251,8 +251,8 @@ class BluettiEncryption:
         static_key = bytes.fromhex(LOCAL_AES_KEY)
         self.unsecure_aes_key = hexxor(self.unsecure_aes_iv, static_key)
 
-        _LOGGER.info("Unsecure iv  " + self.unsecure_aes_iv.hex())
-        _LOGGER.info("Unsecure key " + self.unsecure_aes_key.hex())
+        # Never log key material: the logs end up in bug reports and backups.
+        _LOGGER.debug("Derived the unsecure key")
 
         body = bytes.fromhex("0204") + self.unsecure_aes_iv[8:12]
         return b"".join([KEX_MAGIC, body, hexsum(body, 2)])
@@ -286,7 +286,7 @@ class BluettiEncryption:
             raise ValueError("Key acceptance response is not 0")
 
         self.secure_aes_key = self.my_privkey.exchange(ec.ECDH(), self.peer_pubkey)
-        _LOGGER.info("Secure key   " + self.secure_aes_key.hex())
+        _LOGGER.debug("Derived the secure key")
 
     def getKeyIv(self):
         return (
